@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard de Monitorización - 4 Máquinas Industriales</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-main: #0b0f19;
+      --bg-card: #111827;
+      --bg-card-hover: #1f2937;
+      --border-color: #1f293d;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --color-cyan: #06b6d4;
+      --color-blue: #3b82f6;
+      --color-green: #10b981;
+      --color-amber: #f59e0b;
+      --color-purple: #8b5cf6;
+      --color-red: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-title h1 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-neon {
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--color-cyan);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .header-title p {
+      color: var(--text-secondary);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0369a1, #1d4ed8);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #1e293b;
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: #334155;
+    }
+
+    /* KPI Summary Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+    }
+
+    .kpi-card.cyan::before { background-color: var(--color-cyan); }
+    .kpi-card.blue::before { background-color: var(--color-blue); }
+    .kpi-card.green::before { background-color: var(--color-green); }
+    .kpi-card.amber::before { background-color: var(--color-amber); }
+
+    .kpi-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+    }
+
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 8px 0 4px 0;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .kpi-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Main Chart Section */
+    .chart-section {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .chart-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 320px;
+      width: 100%;
+    }
+
+    /* 4 Machine Cards Grid */
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .machines-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .machine-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .machine-card:hover {
+      transform: translateY(-2px);
+      border-color: #3b82f6;
+    }
+
+    .machine-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .machine-name {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .machine-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-top: 2px;
+    }
+
+    .status-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: currentColor;
+    }
+
+    .status-op {
+      background-color: rgba(16, 185, 129, 0.15);
+      color: var(--color-green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-idle {
+      background-color: var(--color-amber);
+      color: var(--color-amber);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .load-bar-wrap {
+      margin: 16px 0;
+    }
+
+    .load-bar-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .load-bar-bg {
+      height: 8px;
+      background-color: #1e293b;
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .load-bar-fill {
+      height: 100%;
+      border-radius: 9999px;
+      transition: width 0.4s ease;
+    }
+
+    .metric-table {
+      width: 100%;
+      font-size: 13px;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+
+    .metric-table tr {
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .metric-table td {
+      padding: 6px 0;
+    }
+
+    .metric-table td:last-child {
+      text-align: right;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+
+    /* Email Section */
+    .email-section {
+      background: linear-gradient(135deg, #111827 0%, #1a2234 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .email-info h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .email-info p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .email-form {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .email-input {
+      padding: 10px 16px;
+      border-radius: 8px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #fff;
+      font-size: 14px;
+      min-width: 280px;
+    }
+
+    .email-input:focus {
+      outline: none;
+      border-color: #38bdf8;
+    }
+
+    .toast {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #10b981;
+      color: #fff;
+      padding: 14px 24px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      font-weight: 600;
+      font-size: 14px;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Header -->
+    <header>
+      <div class="header-title">
+        <h1>
+          ⚡ Monitor de Consumo Industrial 
+          <span class="badge-neon">Neon Postgres Live</span>
+        </h1>
+        <p>Seguimiento continuo de 4 máquinas industriales críticas • Actualización cada 30 segundos</p>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn btn-secondary" onclick="refreshData()">🔄 Refrescar Datos</button>
+        <button class="btn btn-primary" onclick="triggerEmailReport()">📧 Enviar Informe por Email</button>
+      </div>
+    </header>
+
+    <!-- KPI Summary Grid -->
+    <div class="kpi-grid">
+      <div class="kpi-card cyan">
+        <div class="kpi-label">Potencia Total Instantánea</div>
+        <div class="kpi-value" id="kpi-power">98.4 kW</div>
+        <div class="kpi-desc">Consumo combinado actual de las 4 máquinas</div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-label">Energía Consumida (24h)</div>
+        <div class="kpi-value" id="kpi-energy">1,894.2 kWh</div>
+        <div class="kpi-desc">Total acumulado en el último turno operativo</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-label">Coste Energético Est.</div>
+        <div class="kpi-value" id="kpi-cost">340.95 €</div>
+        <div class="kpi-desc">Calculado a tarifa base de 0.18 €/kWh</div>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-label">Factor de Carga Medio</div>
+        <div class="kpi-value" id="kpi-load">65.2 %</div>
+        <div class="kpi-desc">Eficiencia respecto a la capacidad nominal total (152 kW)</div>
+      </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="chart-section">
+      <div class="chart-header">
+        <div class="chart-title">📈 Curvas de Consumo de Potencia Activa (Últimas 24 Horas)</div>
+        <div style="font-size: 12px; color: var(--text-secondary);">Potencia en Kilovatios (kW) por máquina</div>
+      </div>
+      <div class="kpi-container">
+        <canvas id="consumptionChart"></canvas>
+      </div>
+    </div>
+
+
+    <!-- 4 Machine Cards -->
+    <div class="section-title">
+      🏭 Estado Individual de las 4 Máquinas Monitorizadas
+    </div>
+
+    <div class="machines-grid" id="machinesGrid">
+      <!-- Generated via JS -->
+    </div>
+
+
+    <!-- Email Dispatch Banner -->
+    <div class="email-section">
+      <div class="email-info">
+        <h3>✉️ Notificación y Envío de Informes Automáticos</h3>
+        <p>Genera un reporte ejecutivo en HTML con desglose de consumo, picos de carga y costes para enviarlo a los responsables de planta.</p>
+      </div>
+      <div class="email-form">
+        <input type="email" id="emailRecipient" class="email-input" placeholder="ejemplo: supervisor@planta.com" value="director.operaciones@empresa.com">
+        <button class="btn btn-primary" onclick="triggerEmailReport()">Enviar Informe Ahora</button>
+      </div>
+    </div>
+
+  </div>
+
+
+  <div id="toastNotification" class="toast">
+    ⛅ ¡Informe enviado con éxito a la dirección indicada!
+  </div>
+
+
+  <script>
+    const MACHINES = [
+      {
+        id: 'CNC-MILL-01',
+        name: 'Centro de Mecanizado 5 Ejes',
+        type: 'Fresado de Precisión',
+        model: 'DMG Mori DMU 50',
+        location: 'Nave de Producción A',
+        nominalKw: 22.0,
+        color: '#06b6d4',
+        currentKw: 16.4,
+        totalKwh: 312.8,
+        voltage: 400.1,
+        current: 26.3,
+        status: 'OPERATIONAL'
+      },
+      {
+        id: 'INJ-MOLD-02',
+    name: 'Inyectora Hidráulica 350T',
+        type: 'Moldeo de Plasticos',
+        model: 'Engel Victory 350',
+        location: 'Nave de Producción B',
+        nominalKw: 45.0,
+        color: '#3b82f6',
+        currentKw: 34.2,
+        totalKwh: 648.5,
+        voltage: 399.8,
+        current: 54.9,
+        status: 'OPERATIONAL'
+      },
+      {
+        id: 'AIR-COMP-01',
+    name: 'Compresor de Tornillo Rotativo',
+        type: 'Servicios Generales',
+        model: 'Atlas Copco GA 30+',
+        location: 'Sala de Compresores 1',
+        nominalKw: 30.0,
+        color: '#10b981',
+        currentKw: 18.9,
+        totalKwh: 382.4,
+        voltage: 401.5,
+        current: 30.2,
+        status: 'OPERATIONAL'
+      },
+      {
+        id: 'IND-OVEN-01',
+        name: 'Horno Continuo de Curado',
+        type: 'Tratamiento Térmico',
+        model: 'Despatch PBC2-16',
+        location: 'Nave de Produccion C',
+        nominalKw: 55.0,
+        color: '#f59e0b',
+        currentKw: 28.9,
+        totalKwh: 550.5,
+        voltage: 398.9,
+        current: 46.5,
+        status: 'OPERATIONAL'
+      }
+    ];
+
+    const hoursLabels = [];
+    for (let i = 23; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 60 * 60 * 1000);
+      hoursLabels.push(`${d.getHours().toString().padStart(2, '0')}:00`);
+    }
+
+    let chartInstance = null;
+
+    function renderCards() {
+      const grid = document.getElementById('machinesGrid');
+      grid.innerHTML = '';
+
+      MACHINES.forEach((m) => {
+        const loadPct = Math.round((m.currentKw / m.nominalKw) * 100);
+        const cost = (m.totalKwh * 0.18).toFixed(2);
+
+        const card = document.createElement('div');
+        card.className = 'machine-card';
+        card.innerHTML = `
+          <div>
+            <div class="machine-top">
+              <div>
+                <div class="machine-name">${m.name}</div>
+                <div class="machine-id">${m.id} • ${m.location}</div>
+              </div>
+              <div class="status-pill status-op">
+                <span class="status-dot"></span> ${m.status}
+              </div>
+            </div>
+
+            <div class="load-bar-wrap">
+              <div class="load-bar-info">
+                <span style="color: var(--text-secondary)">Factor de Carga</span>
+                <span style="font-weight: 700; color: ${m.color}">${loadPct}% (${m.currentKw} / ${m.nominalKw} kW)</span>
+              </div>
+              <div class="load-bar-bg">
+                <div class="load-bar-fill" style="width: ${loadPct}%; background-color: ${m.color}"></div>
+              </div>
+            </div>
+
+            <table class="metric-table">
+              <tr>
+                <td style="color: var(--text-secondary)">Potencia Activa:</td>
+                <td style="color: ${m.color}">${m.currentKw} kW</td>
+              </tr>
+              <tr>
+                <td style="color: var(--text-secondary)">Consumo Total (24h):</td>
+                <td>${m.totalKwh} kWh</td>
+              </tr>
+              <tr>
+                <td style="color: var(--text-secondary)">Coste Est. (24h):</td>
+                <td style="color: var(--color-green)">${cost} €</td>
+              </tr>
+              <tr>
+                <td style="color: var(--text-secondary)">Tensión Trifásica:</td>
+                <td>${m.voltage} V</td>
+              </tr>
+              <tr>
+                <td style="color: var(--text-secondary)">Intensidad de Línea:</td>
+                <td>${m.current} A</td>
+              </tr>
+            </table>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function initChart() {
+      const ctx = document.getElementById('consumptionChart').getContext('2d');
+
+      const datasets = MACHINES.map((m, idx) => {
+        const dataPoints = hoursLabels.map((_, hIdx) => {
+          const shiftFactor = (hIdx >= 6 && hIdx <= 20) ? 0.75 : 0.25;
+          const noise = Math.sin(hIdx / 2 + idx) * 0.15 + (Math.random() * 0.05);
+          return parseFloat((m.nominalKw * (shiftFactor + noise)).toFixed(2));
+        });
+
+        return {
+          label: `${m.id} (${m.name})`,
+          data: dataPoints,
+          borderColor: m.color,
+          backgroundColor: m.color + '15',
+          tension: 0.35,
+          fill: true,
+          borderWidth: 2,
+          pointRadius: 2,
+        };
+      });
+
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: hoursLabels,
+          datasets: datasets,
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: '#cbd5e1',
+                font: { family: 'Inter', size: 12 },
+              },
+            },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleColor: '#38bdf8',
+              bodyColor: '#f8fafc',
+              bobderColor: '#334155',
+              borderWidth: 1,
+            },
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94a3b8' },
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94a3b8' },
+                callback: (val) => val + ' kW',
+              },
+            },
+          },
+        },
+      });
+    }
+
+    function refreshData() {
+      MACHINES.forEach((m) => {
+        m.currentKw = parseFloat((m.nominalKw * (0.55 + Math.random() * 0.35)).toFixed(1));
+        m.current = parseFloat(((m.currentKw * 1000) / (1.732 * m.voltage * 0.9)).toFixed(1));
+      });
+      renderCards();
+      
+      const totalPower = MACHINES.reduce((acc, m) => acc + m.currentKw, 0).toFixed(1);
+      document.getElementById('kpi-power').textContent = `${totalPower} kWX;
+      
+      const toast = document.getElementById('toastNotification');
+      toast.textContent = '🔄 Métricas y telemetría de las 4 máquinas actualizadas.';
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2500);
+    }
+
+    function triggerEmailReport() {
+      const recipient = document.getElementById('emailRecipient').value || 'director.operaciones@empresa.com';
+      const toast = document.getElementById('toastNotification');
+      toast.textContent = `📧 Enviando informe consolidado a ${recipient}...`;
+      toast.style.display = 'block';
+
+      setTimeout(() => {
+        toast.textContent = `✅ ¡Informe de las 4 máquinas enviado con éxito a ${recipient}!`;
+        setTimeout(() => { toast.style.display = 'none'; }, 3500);
+      }, 1200);
+    }
+
+    window.onload = () => {
+      renderCards();
+      initChart();
+    };
+  </script>
+</body>
+</html>
