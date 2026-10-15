@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/dashboard", "dest": "/dashboard.html" },
+    { "src": "/informe", "dest": "/reports/informe_consumo_maquinas.html" },
+    { "src": "/report", "dest": "/reports/informe_consumo_maquinas.html" },
+    { "src": "/", "dest": "/index.html" }
+  ]
+}
