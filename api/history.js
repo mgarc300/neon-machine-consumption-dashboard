@@ -21,7 +21,7 @@ export default async function handler(req, res) {
         date_trunc('hour', recorded_at) as hour_bucket,
         AVG(active_power_kw)::numeric(10,2) as avg_power_kw,
         MAX(active_power_kw)::numeric(10,2) as peak_power_kw,
-        SUM(energy_kwh)::numeric(10,2) as total_kwh
+        MAX(total_kwh)::numeric(10,2) as max_kwh
       FROM consumption_readings
       WHERE recorded_at >= NOW() - INTERVAL '24 hours'
       GROUP BY machine_id, date_trunc('hour', recorded_at)
