@@ -1,0 +1,24 @@
+{
+  "name": "neon-machine-consumption",
+  "version": "1.0.0",
+  "description": "Industrial machinery telemetry and consumption tracking on Neon Serverless Postgres",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "node --check src/index.js && node --check src/db/client.js && node --check src/db/migrate.js && node --check src/db/seed.js && node --check src/services/machines.js && node --check src/services/consumption.js",
+    "start": "node src/index.js",
+    "db:migrate": "node src/db/migrate.js",
+    "db:seed": "node src/db/seed.js",
+    "db:check": "node -e \"import('./src/db/client.js').then(m => m.checkConnection().then(() => m.closePool())).catch(console.error)\"",
+    "send-report": "node src/services/mailer.js"
+  },
+  "dependencies": {
+    "@neon/config": "^1.9.1",
+    "@neon/env": "^1.6.1",
+    "@neondatabase/serverless": "^0.10.4",
+    "dotenv": "^16.4.7",
+    "nodemailer": "^10.1.0",
+    "pg": "^8.13.1",
+    "xlsx": "^0.18.5"
+  }
+}
