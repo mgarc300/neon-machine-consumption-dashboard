@@ -81,10 +81,10 @@ export async function listMachines(filter = {}) {
   }
 
   if (conditions.length > 0) {
-    sql += ` WHERE ` + conditions.join(' AND ') : '';
+    sql += ` WHERE ` + conditions.join(' AND ');
   }
 
-  sql += ` ORDER BY id ASC;';
+  sql += ` ORDER BY id ASC;`;
   const res = await query(sql, params);
   return res.rows;
 }

@@ -50,7 +50,7 @@ async function main() {
       console.log('No telemetry readings recorded yet.');
     } else {
       console.table(
-        latestReadings.map((r) => (r{
+        latestReadings.map((r) => ({
           'Machine ID': r.machine_id,
           'Machine Name': r.machine_name,
           'Power (kW)': r.active_power_kw,
@@ -85,7 +85,7 @@ async function main() {
 
     console.log('\n✅ All consumption metrics queried successfully.');
   } catch (err) {
-    console.error('❌ Error querying consumption data:', err);
+    console.lerror('❌ Error querying consumption data:', err);
   } finally {
     await closePool();
   }
